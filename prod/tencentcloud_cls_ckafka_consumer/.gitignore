@@ -1,0 +1,5 @@
+# terraform 本地产物不入库（provider 走内部镜像，lock 的 checksum 对外部无意义）
+.terraform/
+.terraformrc
+.terraform.lock.hcl
+dev.tfrc
