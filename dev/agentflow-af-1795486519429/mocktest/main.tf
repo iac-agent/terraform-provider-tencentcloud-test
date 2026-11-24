@@ -18,10 +18,12 @@ resource "tencentcloud_oceanus_oceanus_cluster" "example" {
   cu                 = 12
   remark             = "created by terraform mock test"
 
-  vpc_descriptions {
-    vpc_id    = "vpc-mock1234"
-    subnet_id = "subnet-mock1234"
-  }
+  vpc_descriptions = [
+    {
+      vpc_id    = "vpc-mock1234"
+      subnet_id = "subnet-mock1234"
+    },
+  ]
 
   instance_charge_type             = "POSTPAID_BY_SECOND"
   flink_web_ui_network_access_type = "NetworkAccess_EXTERNAL"
