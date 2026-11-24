@@ -18,10 +18,12 @@ resource "tencentcloud_oceanus_oceanus_cluster" "example" {
   cu                 = var.cu
   cu_memory          = var.cu_memory
 
-  vpc_descriptions {
-    vpc_id    = var.vpc_id
-    subnet_id = var.subnet_id
-  }
+  vpc_descriptions = [
+    {
+      vpc_id    = var.vpc_id
+      subnet_id = var.subnet_id
+    },
+  ]
 
   instance_charge_type = var.instance_charge_type
 }
