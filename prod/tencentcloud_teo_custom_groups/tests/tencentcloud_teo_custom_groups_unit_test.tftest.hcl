@@ -1,103 +1,75 @@
 # Mock tests for the tencentcloud_teo_custom_groups data source
 # (DescribeCustomGroups, TEO v20220901).
 #
-# The data source would call the cloud API during plan; override_data returns
-# fake values so no request is made. Terraform 1.11's override_data cannot
-# build a list-of-object value for a framework ListNestedAttribute (it always
-# yields a tuple and fails with "expected object type, found tuple"), so the
-# custom_groups list is not mocked here; the scalar query inputs and
-# group_total_count are asserted directly. The nested list mapping is covered
-# by Go unit tests in the provider repository.
-
-override_data {
-  target = data.tencentcloud_teo_custom_groups.example
-  values = {
-    zone_id           = "zone-27h0vbm5w1e"
-    group_types       = ["TLSFingerprint", "UA"]
-    group_total_count = 2
-  }
-}
+# Terraform 1.11's override_data cannot build a list-of-object value for a
+# framework ListNestedAttribute (it always yields a tuple and fails with
+# "expected object type, found tuple"), so custom_groups is not mocked
+# explicitly and stays an empty list. The scalar attributes (zone_id,
+# group_types, group_total_count) are asserted directly, and the list element
+# mapping is covered by Go unit tests in the provider repository.
 
 override_data {
   target = data.tencentcloud_teo_custom_groups.all
   values = {
     zone_id           = "zone-27h0vbm5w1e"
-    group_total_count = 3
+    group_types       = null
+    group_total_count = 2
   }
 }
 
 override_data {
-  target = data.tencentcloud_teo_custom_groups.referer
+  target = data.tencentcloud_teo_custom_groups.filtered
   values = {
     zone_id           = "zone-27h0vbm5w1e"
-    group_types       = ["Referer"]
+    group_types       = ["TLSFingerprint", "UA", "Referer"]
     group_total_count = 1
   }
 }
 
-run "plan_teo_custom_groups" {
-  command = plan
-
-  assert {
-    condition     = data.tencentcloud_teo_custom_groups.example.zone_id == "zone-27h0vbm5w1e"
-    error_message = "zone_id should be zone-27h0vbm5w1e"
-  }
-
-  assert {
-    condition     = length(data.tencentcloud_teo_custom_groups.example.group_types) == 2
-    error_message = "group_types should contain 2 entries"
-  }
-
-  assert {
-    condition     = data.tencentcloud_teo_custom_groups.example.group_types[0] == "TLSFingerprint"
-    error_message = "group_types[0] should be TLSFingerprint"
-  }
-
-  assert {
-    condition     = data.tencentcloud_teo_custom_groups.example.group_types[1] == "UA"
-    error_message = "group_types[1] should be UA"
-  }
-
-  assert {
-    condition     = data.tencentcloud_teo_custom_groups.example.group_total_count == 2
-    error_message = "group_total_count should be 2"
-  }
-}
-
-run "plan_teo_custom_groups_all_types" {
+run "query_all_custom_groups" {
   command = plan
 
   assert {
     condition     = data.tencentcloud_teo_custom_groups.all.zone_id == "zone-27h0vbm5w1e"
-    error_message = "zone_id should be zone-27h0vbm5w1e"
+    error_message = "zone_id should keep the configured site id"
   }
 
   assert {
-    condition     = data.tencentcloud_teo_custom_groups.all.group_total_count == 3
-    error_message = "group_total_count should be 3"
+    condition     = data.tencentcloud_teo_custom_groups.all.group_types == null
+    error_message = "group_types should stay unset when no filter is configured"
+  }
+
+  assert {
+    condition     = data.tencentcloud_teo_custom_groups.all.group_total_count == 2
+    error_message = "group_total_count should be 2"
+  }
+
+  assert {
+    condition     = length(data.tencentcloud_teo_custom_groups.all.custom_groups) == 0
+    error_message = "custom_groups should be an empty list when not mockable"
   }
 }
 
-run "plan_teo_custom_groups_referer_filter" {
+run "query_custom_groups_by_type" {
   command = plan
 
   assert {
-    condition     = data.tencentcloud_teo_custom_groups.referer.zone_id == "zone-27h0vbm5w1e"
-    error_message = "zone_id should be zone-27h0vbm5w1e"
+    condition     = data.tencentcloud_teo_custom_groups.filtered.zone_id == "zone-27h0vbm5w1e"
+    error_message = "filtered zone_id should keep the configured site id"
   }
 
   assert {
-    condition     = length(data.tencentcloud_teo_custom_groups.referer.group_types) == 1
-    error_message = "group_types should contain 1 entry"
+    condition     = data.tencentcloud_teo_custom_groups.filtered.group_types == tolist(["TLSFingerprint", "UA", "Referer"])
+    error_message = "group_types should keep the configured filter list"
   }
 
   assert {
-    condition     = data.tencentcloud_teo_custom_groups.referer.group_types[0] == "Referer"
-    error_message = "group_types[0] should be Referer"
+    condition     = data.tencentcloud_teo_custom_groups.filtered.group_total_count == 1
+    error_message = "filtered group_total_count should be 1"
   }
 
   assert {
-    condition     = data.tencentcloud_teo_custom_groups.referer.group_total_count == 1
-    error_message = "group_total_count should be 1"
+    condition     = length(data.tencentcloud_teo_custom_groups.filtered.custom_groups) == 0
+    error_message = "filtered custom_groups should be an empty list when not mockable"
   }
 }

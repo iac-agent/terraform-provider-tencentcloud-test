@@ -9,18 +9,14 @@ provider "tencentcloud" {
 # below by the agent. Do not remove or modify the provider block above.
 # ==============================================================================
 
-data "tencentcloud_teo_custom_groups" "example" {
-  zone_id = "zone-27h0vbm5w1e"
-
-  group_types = ["TLSFingerprint", "UA"]
-}
-
+# Query all custom groups of a site (group_types left unset, all types queried).
 data "tencentcloud_teo_custom_groups" "all" {
   zone_id = "zone-27h0vbm5w1e"
 }
 
-data "tencentcloud_teo_custom_groups" "referer" {
+# Query custom groups filtered by every valid group type value.
+data "tencentcloud_teo_custom_groups" "filtered" {
   zone_id = "zone-27h0vbm5w1e"
 
-  group_types = ["Referer"]
+  group_types = ["TLSFingerprint", "UA", "Referer"]
 }
